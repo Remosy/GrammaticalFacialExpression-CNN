@@ -1,4 +1,4 @@
-# GrammaticalFacialExpression-CNN
+# GrammaticalFacialExpression-RNN
 ## Code Folder:
 ### Code: 
 
