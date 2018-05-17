@@ -69,7 +69,7 @@ def load_XY(matrix_location):
         count += 1
         print("Created********TRANSLATION X,Y*******" + data_file)
 
-        #NEXT:use the new x,y,z np to make normalisation
+        #NEXT:use the new x,y,z np to make data_norm
 
 def average_nose(xx,yy):
     nose_x = np.average(xx)

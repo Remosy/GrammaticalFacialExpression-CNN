@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 import operator
 from torch.autograd import Variable
-Normalisation_location = "../../RMS/ab_numpy/normalisation/"
+Normalisation_location = "../../RMS/ab_numpy/data_norm/"
 data = np.load(Normalisation_location+'yn_question_datapoints.npy')
 
 np.random.shuffle(data)

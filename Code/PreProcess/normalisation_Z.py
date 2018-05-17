@@ -3,7 +3,7 @@ from scipy.spatial import distance
 import numpy as np
 import os, io, sys
 Matrix_location = "../../RMS/ab_numpy/"
-Normalisation_location = "../../RMS/ab_numpy/normalisation/"
+Normalisation_location = "../../RMS/ab_numpy/data_norm/"
 distances_list = [[17,27],[17,2],[2,89],[89,39],[39,57],[51,57],[48,54],[57,44],[44,89],[89,10],[10,27]]
 angles_list = [[27,2,10],[17,10,2],[48,89,54],[89,48,51],[51,54,89],[51,48,57],[57,54,51]]
 signerA = [1062,1907,1312,1203,1124,2330,1796,1286,1390]
