@@ -81,7 +81,7 @@ def TrainModel(Model, h, c, num_seq):
     #ToDo: input Size????
     
     print(X_train.shape)
-    exit(0)
+   # exit(0)
     for epoch in range(num_epochs):
         Y_predict, hprev = Model(X_train,hc)
         hc = Variable(hprev.data) #Update hc
