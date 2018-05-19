@@ -1,0 +1,56 @@
+TY  - JOUR
+TI  - Facial Expression Recognition Based on Deep Evolutional Spatial-Temporal Networks
+T2  - IEEE Transactions on Image Processing
+SP  - 4193
+EP  - 4203
+AU  - K. Zhang
+AU  - Y. Huang
+AU  - Y. Du
+AU  - L. Wang
+PY  - 2017
+KW  - emotion recognition
+KW  - face recognition
+KW  - geometry
+KW  - recurrent neural nets
+KW  - video signal processing
+KW  - MSCNN
+KW  - PHRNN
+KW  - deep evolutional spatial-temporal networks
+KW  - dynamic-still information extraction
+KW  - expression dynamical evolution
+KW  - facial expression information analysis
+KW  - facial landmarks
+KW  - facial morphological variations
+KW  - facial physical structure
+KW  - geometry information
+KW  - geometry-appearance information extraction
+KW  - loss function calculation
+KW  - multisignal convolutional neural network
+KW  - part-based hierarchical bidirectional recurrent neural network
+KW  - partial-whole information extraction
+KW  - spatial feature extraction
+KW  - temporal feature extraction
+KW  - temporal sequences
+KW  - verification signals
+KW  - videos
+KW  - Data mining
+KW  - Databases
+KW  - Face recognition
+KW  - Feature extraction
+KW  - Image recognition
+KW  - Recurrent neural networks
+KW  - Facial expression recognition
+KW  - deep spatial-temporal networks
+KW  - dynamical evolution
+KW  - recognition and verification signals
+DO  - 10.1109/TIP.2017.2689999
+JO  - IEEE Transactions on Image Processing
+IS  - 9
+SN  - 1057-7149
+VO  - 26
+VL  - 26
+JA  - IEEE Transactions on Image Processing
+Y1  - Sept. 2017
+ER  - 
+
+
