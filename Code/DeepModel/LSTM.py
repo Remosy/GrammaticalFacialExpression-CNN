@@ -42,10 +42,10 @@ Y_test = Variable(torch.Tensor(test_target).long())
 ##-------------------------------------------------
 # LSTM Hyperparameters
 ##-------------------------------------------------
-INPUT_SIZE = 118  # 118 vectors
+INPUT_SIZE = n_attributes  # 118 vectors
 TOTAL_SIZE = len(train_input)
 OUTPUT_SIZE = 2
-HIDDEN_SIZE = 10  # size of hidden layer of neurons
+HIDDEN_SIZE = 5  # size of hidden layer of neurons
 NUM_LAYER = 1  #
 NUM_STEP = 5  # number of steps to unroll the RNN for
 learning_rate = 0.01
@@ -68,7 +68,7 @@ class LSTM_GFE(nn.Module):
 
     def forward(self, input,  hprev, cprev):
         input = input.contiguous().view(input.data.shape[0], 1, input.data.shape[1])
-        print("Continue: "+str(input.shape))
+        #print("Continue: "+str(input.shape))
         output, hc = self.lstm(input, (hprev, cprev))
         output = self.FC(output[:, -1, :])
         #print(output.shape)
@@ -132,8 +132,11 @@ def TrainModel(Model):
 # MODEL Evaluation
 ##-------------------------------------------------
 def EvaModel(Model):
+    hprev = Variable(torch.zeros(1, 1, HIDDEN_SIZE))  # reset RNN memory
+    cprev = Variable(torch.zeros(1, 1, HIDDEN_SIZE))
+
     confusion = torch.zeros(OUTPUT_SIZE, OUTPUT_SIZE)
-    Y_predict,hc = Model(X_train)
+    Y_predict,hc = Model(X_train,hprev, cprev)
     _, predicted = torch.max(Y_predict, 1)
 
     for i in range(train_data.shape[0]):
@@ -145,7 +148,7 @@ def EvaModel(Model):
     print('Confusion matrix for training 1:')
     print(confusion)
 
-    Y_pred_test = Model(X_test)
+    Y_pred_test, hc = Model(X_test,hprev, cprev)
     _, predicted_test = torch.max(Y_pred_test, 1)
     total_test = predicted_test.size(0)
     correct_test = sum(predicted_test.data.numpy() == Y_test.data.numpy())
@@ -169,7 +172,7 @@ def EvaModel(Model):
 net = LSTM_GFE()
 print(net)
 TrainModel(net)
-#EvaModel(net)
+EvaModel(net)
 
 
 
