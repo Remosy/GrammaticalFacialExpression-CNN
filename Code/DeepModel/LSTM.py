@@ -62,7 +62,7 @@ class LSTM_GFE(nn.Module):
             input_size=INPUT_SIZE,
             hidden_size=HIDDEN_SIZE,
             num_layers=NUM_LAYER,
-            batch_first=True,
+            #batch_first=True,
         )
         self.FC = nn.Linear(HIDDEN_SIZE, OUTPUT_SIZE)
 
@@ -88,40 +88,32 @@ def TrainModel(Model):
     print(X_train.shape)
     ct = 0
     # exit(0)
-    out_size = NUM_STEP
+
     for epoch in range(num_epochs):
         train_ct = 0
-        hprev = Variable(torch.zeros(1, out_size, HIDDEN_SIZE))  # reset RNN memory
-        cprev = Variable(torch.zeros(1, out_size, HIDDEN_SIZE))
-        ccc = 0
+        hprev = Variable(torch.zeros(1, 1, HIDDEN_SIZE))  # reset RNN memory
+        cprev = Variable(torch.zeros(1, 1, HIDDEN_SIZE))
         for entry in X_train:
-            #print(entry)
-            #print(entry.shape[0])
-            #print(entry.shape[1])
-
             if train_ct%NUM_STEP == 0 and train_ct !=0:
-                Y_predict, hc = Model(X_train[train_ct-NUM_STEP:train_ct],hprev, cprev)
+                Y_predict, hc = Model(X_train[train_ct-NUM_STEP:train_ct,:],hprev, cprev)
                 hprev = hc[0]
                 cprev = hc[1]
                 hprev.detach_()
                 cprev.detach_()
                 loss = loss_func(Y_predict, Y_train[train_ct-NUM_STEP:train_ct])
-                all_train_losses.append(loss.data[0])
+
                 optimiser.zero_grad()
                 loss.backward()
                 optimiser.step()
-                print("#" + str(train_ct))
-                ccc+=1
-                print(ccc)
+
             train_ct+=1
 
 
-        if epoch % 2 == 0:
+        if epoch % 1 == 0:
+            all_train_losses.append(loss.data[0])
             Y_pred_test, hc = Model(X_test,hprev, cprev)
-            #pred_y = torch.max(Y_pred_test, 1)[1].data.numpy().squeeze()
             loss_test = loss_func(Y_pred_test, Y_test)
             all_test_losses.append(loss_test.data[0])
-            #accuracy = sum(pred_y == Y_test) / float(Y_test.size)
             print('Epoch: ', epoch, '| train loss: %.4f' % loss.data[0], '| test loss: %.4f' % loss_test.data[0])
 
         ct+=1
@@ -130,8 +122,9 @@ def TrainModel(Model):
     import matplotlib.pyplot as plt
 
     plt.figure()
-    plt.plot(all_train_losses)
-    plt.plot(all_test_losses, color="green")
+    plt.plot(all_train_losses, label='Training')
+    plt.plot(all_test_losses, color="green", label='Testing')
+    plt.legend()
     plt.show()
 
 
@@ -140,7 +133,7 @@ def TrainModel(Model):
 ##-------------------------------------------------
 def EvaModel(Model):
     confusion = torch.zeros(OUTPUT_SIZE, OUTPUT_SIZE)
-    Y_predict = Model(X_train)
+    Y_predict,hc = Model(X_train)
     _, predicted = torch.max(Y_predict, 1)
 
     for i in range(train_data.shape[0]):
@@ -176,7 +169,7 @@ def EvaModel(Model):
 net = LSTM_GFE()
 print(net)
 TrainModel(net)
-EvaModel(net)
+#EvaModel(net)
 
 
 
