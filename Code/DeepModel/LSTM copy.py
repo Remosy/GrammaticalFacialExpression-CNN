@@ -13,7 +13,7 @@ import torch.nn.functional as F
 # DATA Preparation
 ##-------------------------------------------------
 Normalisation_location = "../data_norm/"
-data = np.load(Normalisation_location + 'topics_datapoints.npy')
+data = np.load(Normalisation_location + 'yn_question_datapoints.npy')
 np.random.shuffle(data)
 # chars = list(set(data))
 # data_size, vocab_size = len(data), len(chars)
@@ -45,11 +45,11 @@ Y_test = Variable(torch.Tensor(test_target).long())
 INPUT_SIZE = n_attributes  # 118 vectors
 TOTAL_SIZE = len(train_input)
 OUTPUT_SIZE = 2
-HIDDEN_SIZE = 50  # size of hidden layer of neurons
+HIDDEN_SIZE = 5  # size of hidden layer of neurons
 NUM_LAYER = 1  #
 NUM_STEP = 5  # number of steps to unroll the RNN for
-learning_rate = 0.003
-num_epochs = 30
+learning_rate = 0.01
+num_epochs = 10
 
 
 ##-------------------------------------------------
@@ -80,7 +80,7 @@ class LSTM_GFE(nn.Module):
 ##-------------------------------------------------
 def TrainModel(Model):
     loss_func = torch.nn.CrossEntropyLoss()
-    optimiser = torch.optim.Adam(Model.parameters(), lr=learning_rate)
+    optimiser = torch.optim.RMSprop(Model.parameters(), lr=learning_rate)
 
     all_train_losses = []
     all_test_losses = []
@@ -91,37 +91,39 @@ def TrainModel(Model):
 
     for epoch in range(num_epochs):
         train_ct = 0
-        hprev = Variable(torch.zeros(NUM_LAYER, 1, HIDDEN_SIZE))  # reset RNN memory
-        cprev = Variable(torch.zeros(NUM_LAYER, 1, HIDDEN_SIZE))
+        hprev = Variable(torch.zeros(1, 1, HIDDEN_SIZE))  # reset RNN memory
+        cprev = Variable(torch.zeros(1, 1, HIDDEN_SIZE))
+        for entry in X_train:
+            if train_ct%NUM_STEP == 0 and train_ct !=0:
+                Y_predict, hc = Model(X_train[train_ct-NUM_STEP:train_ct,:],hprev, cprev)
+                hprev = hc[0]
+                cprev = hc[1]
+                hprev.detach_()
+                cprev.detach_()
+                loss = loss_func(Y_predict, Y_train[train_ct-NUM_STEP:train_ct])
 
-        Y_predict, hc = Model(X_train,hprev, cprev)
-        hprev = hc[0]
-        cprev = hc[1]
-        hprev.detach_()
-        cprev.detach_()
-        loss = loss_func(Y_predict, Y_train)
+                optimiser.zero_grad()
+                loss.backward()
+                optimiser.step()
 
-        optimiser.zero_grad()
-        loss.backward()
-        optimiser.step()
+            train_ct+=1
 
 
-        all_train_losses.append(loss.data[0])
-        Y_pred_test, hc = Model(X_test,hprev, cprev)
-        loss_test = loss_func(Y_pred_test, Y_test)
-        all_test_losses.append(loss_test.data[0])
-        if epoch %3 == 0:
+        if epoch % 1 == 0:
+            all_train_losses.append(loss.data[0])
+            Y_pred_test, hc = Model(X_test,hprev, cprev)
+            loss_test = loss_func(Y_pred_test, Y_test)
+            all_test_losses.append(loss_test.data[0])
             print('Epoch: ', epoch, '| train loss: %.4f' % loss.data[0], '| test loss: %.4f' % loss_test.data[0])
+
+        ct+=1
 
 
     import matplotlib.pyplot as plt
 
     plt.figure()
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Model Loss')
     plt.plot(all_train_losses, label='Training')
-    plt.plot(all_test_losses, color="orange", label='Testing')
+    plt.plot(all_test_losses, color="green", label='Testing')
     plt.legend()
     plt.show()
 
@@ -162,12 +164,6 @@ def EvaModel(Model):
     print('')
     print('Confusion matrix for testing 1:')
     print(confusion_test)
-
-    tp = confusion_test[1, 1]
-    fp = confusion_test[0, 1]
-    fn = confusion_test[1, 0]
-    F1 = 2*tp/(2*tp+fp+fn)
-    print('F1-Score: %.4f %%' % F1)
 
 ##-------------------------------------------------
 # Start

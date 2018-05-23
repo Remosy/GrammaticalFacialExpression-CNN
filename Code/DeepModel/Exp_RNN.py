@@ -8,12 +8,13 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 import torch.nn.functional as F
-
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
 ##-------------------------------------------------
 # DATA Preparation
 ##-------------------------------------------------
 Normalisation_location = "../data_norm/"
-data = np.load(Normalisation_location + 'yn_question_datapoints.npy')
+data = np.load(Normalisation_location + 'topics_datapoints.npy')
 np.random.shuffle(data)
 # chars = list(set(data))
 # data_size, vocab_size = len(data), len(chars)
@@ -45,11 +46,11 @@ Y_test = Variable(torch.Tensor(test_target).long())
 INPUT_SIZE = 118  # 11 vectors
 TOTAL_SIZE = len(train_input)
 OUTPUT_SIZE = 2
-HIDDEN_SIZE =70  # size of hidden layer of neurons
+HIDDEN_SIZE =105  # size of hidden layer of neurons
 NUM_LAYER = 1  #
 NUM_STEP = 50  # number of steps to unroll the RNN for
-learning_rate = 0.009
-num_epochs = 85
+learning_rate = 0.0099
+num_epochs = 30
 
 
 ##-------------------------------------------------
@@ -68,7 +69,7 @@ class LSTM_GFE(nn.Module):
 
     def forward(self, input):
         input = input.contiguous().view(input.data.shape[0], 1, input.data.shape[1])
-        print("Continue: "+str(input.shape))
+        #print("Continue: "+str(input.shape))
         output, hc = self.lstm(input, None)
         output = self.FC(output[:, -1, :])
         return output
@@ -79,7 +80,7 @@ class LSTM_GFE(nn.Module):
 # TRAINING
 ##-------------------------------------------------
 def TrainModel(Model, h, c, num_seq):
-    loss_func = torch.nn.CrossEntropyLoss()
+    loss_func = torch.nn.MSELoss()
     optimiser = torch.optim.Adam(Model.parameters(), lr=learning_rate)
 
     all_train_losses = []
@@ -90,7 +91,7 @@ def TrainModel(Model, h, c, num_seq):
     # exit(0)
     for epoch in range(num_epochs):
         Y_predict = Model(X_train)
-        loss = loss_func(Y_predict, Y_train)
+        loss = loss_func(Y_predict[:,1].type(torch.FloatTensor), Y_train.type(torch.FloatTensor))
         all_train_losses.append(loss.data[0])
         Model.zero_grad()
         loss.backward()
@@ -103,8 +104,12 @@ def TrainModel(Model, h, c, num_seq):
     import matplotlib.pyplot as plt
 
     plt.figure()
-    plt.plot(all_train_losses)
-    plt.plot(all_test_losses, color="green")
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Model Loss')
+    plt.plot(all_train_losses, label='Training')
+    plt.plot(all_test_losses, color="orange", label='Testing')
+    plt.legend()
     plt.show()
 
 
@@ -142,6 +147,18 @@ def EvaModel(Model):
     print('Confusion matrix for testing 1:')
     print(confusion_test)
 
+    tp = confusion_test[1, 1]
+    fp = confusion_test[0, 1]
+    fn = confusion_test[1, 0]
+    F1 = 2 * tp / (2 * tp + fp + fn)
+    print('F1-Score: %.4f %%' % F1)
+
+    """ Confusion Matrix
+    plt.imshow(confusion_test, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title("LSTM Confusion Table")
+    plt.colorbar()
+    tick_marks = np.arange(1)
+    """
 
 net = LSTM_GFE()
 print(net)
