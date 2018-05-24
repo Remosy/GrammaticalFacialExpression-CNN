@@ -42,14 +42,14 @@ Y_test = Variable(torch.Tensor(test_target).long())
 ##-------------------------------------------------
 # LSTM Hyperparameters
 ##-------------------------------------------------
-INPUT_SIZE = n_attributes  # 118 vectors
+INPUT_SIZE = 118  # 11 vectors
 TOTAL_SIZE = len(train_input)
 OUTPUT_SIZE = 2
-HIDDEN_SIZE = 50  # size of hidden layer of neurons
+HIDDEN_SIZE =105  # size of hidden layer of neurons
 NUM_LAYER = 1  #
-NUM_STEP = 5  # number of steps to unroll the RNN for
-learning_rate = 0.003
-num_epochs = 30
+NUM_STEP = 50  # number of steps to unroll the RNN for
+learning_rate = 0.0099
+num_epochs = 20
 
 
 ##-------------------------------------------------
@@ -67,8 +67,10 @@ class LSTM_GFE(nn.Module):
         self.FC = nn.Linear(HIDDEN_SIZE, OUTPUT_SIZE)
 
     def forward(self, input,  hprev, cprev):
-        input = input.contiguous().view(input.data.shape[0], 1, input.data.shape[1])
+        input = Variable(torch.cat(input.data).view(len(input), 1, -1))
+        #input = input.contiguous().view(input.data.shape[0], 1, input.data.shape[1])
         #print("Continue: "+str(input.shape))
+
         output, hc = self.lstm(input, (hprev, cprev))
         output = self.FC(output[:, -1, :])
         #print(output.shape)

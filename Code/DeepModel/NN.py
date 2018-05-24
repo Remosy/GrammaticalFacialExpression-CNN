@@ -4,8 +4,8 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
-Normalisation_location = "../../RMS/ab_numpy/data_norm/"
-data = np.load(Normalisation_location+'emphasis_datapoints.npy')
+Normalisation_location = "../data_norm/"
+data = np.load(Normalisation_location + 'topics_datapoints.npy')
 
 np.random.shuffle(data)
 msk = np.random.rand(len(data)) < 0.8
@@ -48,7 +48,7 @@ class NN_GFE(torch.nn.Module):
         return y_pred
 
 net = NN_GFE(input_neurons, hidden_neurons, output_neurons)
-loss_func = torch.nn.CrossEntropyLoss()
+loss_func = torch.nn.MSELoss()
 
 
 optimiser = torch.optim.Adam(net.parameters(), lr=learning_rate)
@@ -58,6 +58,8 @@ all_test_losses = []
 
 for epoch in range(num_epochs):
     Y_predict = net(X_train)
+   # print(Y_predict)
+    #Y_train = torch.from_numpy(Y_train[:]).float()
     loss = loss_func(Y_predict, Y_train)
     all_train_losses.append(loss.data[0])
     net.zero_grad()

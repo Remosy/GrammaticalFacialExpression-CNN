@@ -64,14 +64,19 @@ class LSTM_GFE(nn.Module):
             hidden_size=HIDDEN_SIZE,
             num_layers=NUM_LAYER,
             batch_first=True,
+
         )
         self.FC = nn.Linear(HIDDEN_SIZE, OUTPUT_SIZE)
 
     def forward(self, input):
-        input = input.contiguous().view(input.data.shape[0], 1, input.data.shape[1])
-        #print("Continue: "+str(input.shape))
+        input =  Variable(torch.cat(input.data).view(len(input), 1, -1))
+        #input = input.contiguous().view(input.data.shape[0], 1, input.data.shape[1])
+        print("Continue0: "+str(input.shape))
+        #exit(0)
         output, hc = self.lstm(input, None)
         output = self.FC(output[:, -1, :])
+        print("Continue1: " + str(len(hc)))
+        exit(0)
         return output
         # return output.view(TOTAL_SIZE), hc
 
@@ -79,19 +84,18 @@ class LSTM_GFE(nn.Module):
 ##-------------------------------------------------
 # TRAINING
 ##-------------------------------------------------
-def TrainModel(Model, h, c, num_seq):
-    loss_func = torch.nn.MSELoss()
+def TrainModel(Model):
+    loss_func = torch.nn.CrossEntropyLoss()
     optimiser = torch.optim.Adam(Model.parameters(), lr=learning_rate)
 
     all_train_losses = []
     all_test_losses = []
     hc = None;
 
-    print(X_train.shape)
-    # exit(0)
     for epoch in range(num_epochs):
         Y_predict = Model(X_train)
-        loss = loss_func(Y_predict[:,1].type(torch.FloatTensor), Y_train.type(torch.FloatTensor))
+
+        loss = loss_func(Y_predict, Y_train)
         all_train_losses.append(loss.data[0])
         Model.zero_grad()
         loss.backward()
@@ -162,7 +166,7 @@ def EvaModel(Model):
 
 net = LSTM_GFE()
 print(net)
-TrainModel(net, 1, 1, 1)
+TrainModel(net)
 EvaModel(net)
 
 
