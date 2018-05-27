@@ -65,7 +65,7 @@
       <file leaf-file-name="Exp_RNN.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/DeepModel/Exp_RNN.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="196">
+            <state relative-caret-position="870">
               <caret line="58" column="14" lean-forward="false" selection-start-line="58" selection-start-column="14" selection-end-line="58" selection-end-column="14" />
               <folding>
                 <element signature="e#138#156#0" expanded="true" />
@@ -232,11 +232,6 @@
             <path>
               <item name="Code" type="b2602c69:ProjectViewProjectNode" />
               <item name="Code" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Code" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Code" type="462c0819:PsiDirectoryNode" />
-              <item name="data_norm" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="Code" type="b2602c69:ProjectViewProjectNode" />
@@ -514,7 +509,7 @@
           <line>3</line>
         </line-breakpoint>
       </breakpoints>
-      <option name="time" value="12" />
+      <option name="time" value="13" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -706,7 +701,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/DeepModel/Exp_RNN.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="196">
+        <state relative-caret-position="870">
           <caret line="58" column="14" lean-forward="false" selection-start-line="58" selection-start-column="14" selection-end-line="58" selection-end-column="14" />
           <folding>
             <element signature="e#138#156#0" expanded="true" />
