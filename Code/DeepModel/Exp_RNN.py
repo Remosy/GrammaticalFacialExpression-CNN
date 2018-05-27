@@ -7,6 +7,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
+import torch.utils.data
+from sklearn.model_selection import train_test_split
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
@@ -14,7 +16,7 @@ import matplotlib.pyplot as plt
 # DATA Preparation
 ##-------------------------------------------------
 Normalisation_location = "../data_norm/"
-data = np.load(Normalisation_location + 'topics_datapoints.npy')
+data = np.load(Normalisation_location + 'affirmative_datapoints.npy')
 np.random.shuffle(data)
 # chars = list(set(data))
 # data_size, vocab_size = len(data), len(chars)
@@ -22,11 +24,15 @@ np.random.shuffle(data)
 # char_to_ix = {ch: i for i, ch in enumerate(chars)}
 # ix_to_char = {i: ch for i, ch in enumerate(chars)}
 
-msk = np.random.rand(len(data)) < 0.8
+#msk = np.random.rand(len(data)) < 0.8
+#msk = len(data) < 0.8
 
-train_data = data[msk]
-test_data = data[~msk]
+#train_data = data[msk]
+#test_data = data[~msk]
+
+train_data, test_data = train_test_split(data, test_size=0.2,shuffle=False)
 n_attributes = train_data.shape[1] - 1
+
 
 train_input = train_data[:, :n_attributes]
 train_target = train_data[:, n_attributes]
@@ -71,12 +77,12 @@ class LSTM_GFE(nn.Module):
     def forward(self, input):
         input =  Variable(torch.cat(input.data).view(len(input), 1, -1))
         #input = input.contiguous().view(input.data.shape[0], 1, input.data.shape[1])
-        print("Continue0: "+str(input.shape))
+        #print("Continue0: "+str(input.shape))
         #exit(0)
         output, hc = self.lstm(input, None)
         output = self.FC(output[:, -1, :])
-        print("Continue1: " + str(len(hc)))
-        exit(0)
+        #print("Continue1: " + str(len(hc)))
+
         return output
         # return output.view(TOTAL_SIZE), hc
 
@@ -110,7 +116,7 @@ def TrainModel(Model):
     plt.figure()
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
-    plt.title('Model Loss')
+    plt.title('Relative Model Loss')
     plt.plot(all_train_losses, label='Training')
     plt.plot(all_test_losses, color="orange", label='Testing')
     plt.legend()

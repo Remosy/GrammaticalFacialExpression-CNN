@@ -1,113 +1,107 @@
-from __future__ import print_function
-import argparse
+"""
+View more, visit my tutorial page: https://morvanzhou.github.io/tutorials/
+My Youtube Channel: https://www.youtube.com/user/MorvanZhou
+
+Dependencies:
+torch: 0.1.11
+matplotlib
+torchvision
+"""
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torchvision import datasets, transforms
+from torch import nn
 from torch.autograd import Variable
-
-# Training settings
-parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
-parser.add_argument('--batch-size', type=int, default=64, metavar='N',
-                    help='input batch size for training (default: 64)')
-parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
-                    help='input batch size for testing (default: 1000)')
-parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                    help='number of epochs to train (default: 10)')
-parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
-                    help='learning rate (default: 0.01)')
-parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
-                    help='SGD momentum (default: 0.5)')
-parser.add_argument('--no-cuda', action='store_true', default=False,
-                    help='disables CUDA training')
-parser.add_argument('--seed', type=int, default=1, metavar='S',
-                    help='random seed (default: 1)')
-parser.add_argument('--log-interval', type=int, default=100, metavar='N',
-                    help='how many batches to wait before logging training status')
-args = parser.parse_args()
-args.cuda = not args.no_cuda and torch.cuda.is_available()
-
-torch.manual_seed(args.seed)
-if args.cuda:
-    torch.cuda.manual_seed(args.seed)
+import torchvision.datasets as dsets
+import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
 
 
-kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-train_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=True, download=True,
-                   transform=transforms.Compose([
-                       transforms.ToTensor(),
-                       transforms.Normalize((0.1307,), (0.3081,))
-                   ])),
-    batch_size=args.batch_size, shuffle=True, **kwargs)
-test_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=False, transform=transforms.Compose([
-                       transforms.ToTensor(),
-                       transforms.Normalize((0.1307,), (0.3081,))
-                   ])),
-    batch_size=args.test_batch_size, shuffle=True, **kwargs)
+# torch.manual_seed(1)    # reproducible
+
+# Hyper Parameters
+EPOCH = 1               # train the training data n times, to save time, we just train 1 epoch
+BATCH_SIZE = 64
+TIME_STEP = 28          # rnn time step / image height
+INPUT_SIZE = 28         # rnn input size / image width
+LR = 0.01               # learning rate
+DOWNLOAD_MNIST = True   # set to True if haven't download the data
 
 
-class Net(nn.Module):
+# Mnist digital dataset
+train_data = dsets.MNIST(
+    root='./mnist/',
+    train=True,                         # this is training data
+    transform=transforms.ToTensor(),    # Converts a PIL.Image or numpy.ndarray to
+                                        # torch.FloatTensor of shape (C x H x W) and normalize in the range [0.0, 1.0]
+    download=DOWNLOAD_MNIST,            # download it if you don't have it
+)
+
+# plot one example
+print(train_data.train_data.size())     # (60000, 28, 28)
+print(train_data.train_labels.size())   # (60000)
+plt.imshow(train_data.train_data[0].numpy(), cmap='gray')
+plt.title('%i' % train_data.train_labels[0])
+plt.show()
+
+# Data Loader for easy mini-batch return in training
+train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=BATCH_SIZE, shuffle=True)
+
+# convert test data into Variable, pick 2000 samples to speed up testing
+test_data = dsets.MNIST(root='./mnist/', train=False, transform=transforms.ToTensor())
+test_x = Variable(test_data.test_data, volatile=True).type(torch.FloatTensor)[:2000]/255.   # shape (2000, 28, 28) value in range(0,1)
+test_y = test_data.test_labels.numpy().squeeze()[:2000]    # covert to numpy array
+
+
+class RNN(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-        self.conv2_drop = nn.Dropout2d()
-        self.fc1 = nn.Linear(320, 50)
-        self.fc2 = nn.Linear(50, 10)
+        super(RNN, self).__init__()
+
+        self.rnn = nn.LSTM(         # if use nn.RNN(), it hardly learns
+            input_size=INPUT_SIZE,
+            hidden_size=64,         # rnn hidden unit
+            num_layers=1,           # number of rnn layer
+            batch_first=True,       # input & output will has batch size as 1s dimension. e.g. (batch, time_step, input_size)
+        )
+
+        self.out = nn.Linear(64, 10)
 
     def forward(self, x):
-        x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-        x = x.view(-1, 320)
-        x = F.relu(self.fc1(x))
-        x = F.dropout(x, training=self.training)
-        x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        # x shape (batch, time_step, input_size)
+        # r_out shape (batch, time_step, output_size)
+        # h_n shape (n_layers, batch, hidden_size)
+        # h_c shape (n_layers, batch, hidden_size)
+        r_out, (h_n, h_c) = self.rnn(x, None)   # None represents zero initial hidden state
 
-model = Net()
-if args.cuda:
-    model.cuda()
-
-optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
-
-def train(epoch):
-    model.train()
-    for batch_idx, (data, target) in enumerate(train_loader):
-        if args.cuda:
-            data, target = data.cuda(), target.cuda()
-        data, target = Variable(data), Variable(target)
-        optimizer.zero_grad()
-        output = model(data)
-        loss = F.nll_loss(output, target)
-        loss.backward()
-        optimizer.step()
-        if batch_idx % args.log_interval == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.data[0]))
-
-def test():
-    model.eval()
-    test_loss = 0
-    correct = 0
-    for data, target in test_loader:
-        if args.cuda:
-            data, target = data.cuda(), target.cuda()
-        data, target = Variable(data, volatile=True), Variable(target)
-        output = model(data)
-        test_loss += F.nll_loss(output, target, size_average=False).data[0] # sum up batch loss
-        pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-        correct += pred.eq(target.data.view_as(pred)).long().cpu().sum()
-
-    test_loss /= len(test_loader.dataset)
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+        # choose r_out at the last time step
+        out = self.out(r_out[:, -1, :])
+        return out
 
 
-for epoch in range(1, args.epochs + 1):
-    train(epoch)
-    test()
+rnn = RNN()
+print(rnn)
+
+optimizer = torch.optim.Adam(rnn.parameters(), lr=LR)   # optimize all cnn parameters
+loss_func = nn.CrossEntropyLoss()                       # the target label is not one-hotted
+
+# training and testing
+for epoch in range(EPOCH):
+    for step, (x, y) in enumerate(train_loader):        # gives batch data
+        b_x = Variable(x.view(-1, 28, 28))              # reshape x to (batch, time_step, input_size)
+        b_y = Variable(y)                               # batch y
+
+        output = rnn(b_x)                               # rnn output
+        loss = loss_func(output, b_y)                   # cross entropy loss
+        optimizer.zero_grad()                           # clear gradients for this training step
+        loss.backward()                                 # backpropagation, compute gradients
+        optimizer.step()                                # apply gradients
+
+        if step % 50 == 0:
+            test_output = rnn(test_x)                   # (samples, time_step, input_size)
+            pred_y = torch.max(test_output, 1)[1].data.numpy().squeeze()
+            accuracy = sum(pred_y == test_y) / float(test_y.size)
+            print('Epoch: ', epoch, '| train loss: %.4f' % loss.data[0], '| test accuracy: %.2f' % accuracy)
+
+# print 10 predictions from test data
+test_output = rnn(test_x[:10].view(-1, 28, 28))
+pred_y = torch.max(test_output, 1)[1].data.numpy().squeeze()
+print(pred_y, 'prediction number')
+print(test_y[:10], 'real number')
