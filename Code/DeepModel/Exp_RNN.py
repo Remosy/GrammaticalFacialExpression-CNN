@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # DATA Preparation
 ##-------------------------------------------------
 Normalisation_location = "../data_norm/"
-data = np.load(Normalisation_location + 'affirmative_datapoints.npy')
+data = np.load(Normalisation_location + 'emphasis_datapoints.npy')
 np.random.shuffle(data)
 # chars = list(set(data))
 # data_size, vocab_size = len(data), len(chars)
@@ -56,7 +56,7 @@ HIDDEN_SIZE =105  # size of hidden layer of neurons
 NUM_LAYER = 1  #
 NUM_STEP = 50  # number of steps to unroll the RNN for
 learning_rate = 0.0099
-num_epochs = 30
+num_epochs = 40
 
 
 ##-------------------------------------------------
@@ -116,7 +116,7 @@ def TrainModel(Model):
     plt.figure()
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
-    plt.title('Relative Model Loss')
+    plt.title('Emphasis Model Loss')
     plt.plot(all_train_losses, label='Training')
     plt.plot(all_test_losses, color="orange", label='Testing')
     plt.legend()
