@@ -18,4 +18,6 @@ change the data file name (line 19) from "data_norm" folder to run different fac
 
 ### GitHub for this paper:
 
-[Github](https://github.com/Remosy/GrammaticalFacialExpression-RNN)
+To read paper of this GitHub work: [Report](https://github.com/Remosy/GrammaticalFacialExpression-RNN/blob/master/report.pdf)
+
+<img src="https://github.com/Remosy/GrammaticalFacialExpression-RNN/blob/master/Screen%20Shot%202018-07-09%20at%203.15.59%20am.png" width="70%">
