@@ -3,7 +3,7 @@ code is modified based on COMP4460 lab code
 ## Code Folder:
 ### data_norm:normalised data 
 To successfully normalise the raw data: 
-[Github](https://github.com/Remosy/GrammaticalFacialExprssion)
+[Github](https://github.com/Remosy/GrammaticalFacialExpression-RNN/tree/master/GFE-NN)
 
 *In the "GrammaticalFacialExprssion/Code/PreProcess/":*
  
